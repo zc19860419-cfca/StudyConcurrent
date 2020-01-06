@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.zc.study</groupId>
-    <artifactId>StudyJNI</artifactId>
+    <artifactId>StudyConcurrent</artifactId>
     <version>3.0.0.0</version>
 
-    <name>StudyJNI</name>
+    <name>StudyConcurrent</name>
     <!-- FIXME change it to the project's website -->
     <url>http://www.example.com</url>
 
