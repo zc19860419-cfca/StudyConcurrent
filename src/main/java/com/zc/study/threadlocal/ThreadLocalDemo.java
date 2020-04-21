@@ -1,8 +1,9 @@
 package com.zc.study.threadlocal;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -12,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author zhangchong
  * @CodeReviewer zhangqingan
- * @Description
+ * @Description 每个线程对应唯一的一个ID
  */
 public class ThreadLocalDemo {
-    private static final int MAX_THREAD_NUM = 10;
+    private static final int MAX_TASK_NUM = 200;
 
     public static void main(String[] args) {
         multiTest();
@@ -23,27 +24,28 @@ public class ThreadLocalDemo {
     }
 
     private static void singleTest() {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < MAX_TASK_NUM; i++) {
             System.out.println(ThreadId.get());
         }
     }
 
+    private static Set<Long> count = new HashSet<>();
+
     private static void multiTest() {
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 12, 8000L,
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(200, 200, 8000L,
                 TimeUnit.MILLISECONDS, new LinkedBlockingDeque<>());
 
         List<Future<Long>> all = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            all.add(executor.submit(new Callable<Long>() {
-                @Override
-                public Long call() throws Exception {
-                    try{
-                        return ThreadId.get();
-                    }finally {
-                        ThreadId.remove();
-                    }
-
+        for (int i = 0; i < MAX_TASK_NUM; i++) {
+            all.add(executor.submit(() -> {
+                try {
+                    final long threadId = ThreadId.get();
+                    count.add(threadId);
+                    return threadId;
+                } finally {
+                    ThreadId.remove();
                 }
+
             }));
         }
 
@@ -61,6 +63,8 @@ public class ThreadLocalDemo {
         result.stream().forEach(item -> {
             System.out.println(item);
         });
+
+        System.out.println("size=" + count.size());
 
         if (!executor.isShutdown()) {
             executor.shutdownNow();
